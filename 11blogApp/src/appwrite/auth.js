@@ -9,11 +9,12 @@ export class AuthService{
     this.client
     .setEndpoint(conf.appwriteUrl)
     .setProject(conf.appwriteProjectId)
+    .setKey(import.meta.env.VITE_APPWRITE_API_SECRET_KEY);
     this.account = new Account(this.client)
   }
   async createAccount({email,password,name}){
     try {
-      await this.account.create(ID.unique(), email, password, name)
+      await this.account.create("unique()", email, password, name)
       if (userAccount) {
         return this.login({email,password})
       } else {
@@ -25,18 +26,20 @@ export class AuthService{
   }
   async login({email, password}){
     try {
-      return await this.account.createEmailSession(email,password)
+      return await this.account.createSession(email,password)
     } catch (error) {
+      console.error("Login Error:", error);
       throw error 
     }
   }
+  
   async getCurrentUser(){
     try {
       return await this.account.get()
     } catch (error) {
-      console.log("Appwrite service :: getCuurentUser() :: ", error)
-    }
-    return null
+      console.log("Appwrite service :: getCurrentUser() :: ", error)
+      return null
+    } 
   }
   async logout(){
     try {
