@@ -9,38 +9,45 @@ export class AuthService{
     this.client
     .setEndpoint(conf.appwriteUrl)
     .setProject(conf.appwriteProjectId)
-    .setKey(import.meta.env.VITE_APPWRITE_API_SECRET_KEY);
     this.account = new Account(this.client)
   }
   async createAccount({email,password,name}){
     try {
-      await this.account.create("unique()", email, password, name)
+      const userAccount = await this.account.create(ID.unique(), email, password, name)
       if (userAccount) {
         return this.login({email,password})
-      } else {
-        return userAccount
       }
+       return userAccount
     } catch (error) {
       throw error
     }
   }
-  async login({email, password}){
+  async login({ email, password }) {
     try {
-      return await this.account.createSession(email,password)
+      const session = await this.account.createSession(email, password);
+      console.log("Login successful:", session);
+      return session;
     } catch (error) {
       console.error("Login Error:", error);
-      throw error 
+      throw error;
     }
   }
   
-  async getCurrentUser(){
+  
+  async getCurrentUser() {
     try {
-      return await this.account.get()
+      const session = await this.account.getSession("current");
+      if (!session) {
+        console.log("No active session found.");
+        return null;
+      }
+      return await this.account.get(); // Fetch user details
     } catch (error) {
-      console.log("Appwrite service :: getCurrentUser() :: ", error)
-      return null
-    } 
+      console.log("Appwrite service :: getCurrentUser() :: ", error);
+      return null;
+    }
   }
+  
   async logout(){
     try {
        await this.account.deleteSessions()
